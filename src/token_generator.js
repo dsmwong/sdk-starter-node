@@ -23,7 +23,10 @@ function tokenGenerator(identity = 0) {
   const token = new AccessToken(
     config.TWILIO_ACCOUNT_SID,
     config.TWILIO_API_KEY,
-    config.TWILIO_API_SECRET
+    config.TWILIO_API_SECRET,
+    {
+      ttl: 200
+    }
   );
 
   // Assign the provided identity or generate a new one

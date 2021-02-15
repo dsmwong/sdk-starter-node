@@ -7,6 +7,7 @@ $(function () {
 
   //Our interface to the Sync service
   var syncClient;
+  var identity;
 
   // Every browser Sync client relies on FPA tokens to authenticate and authorize it
   // for access to your Sync data.
@@ -21,7 +22,8 @@ $(function () {
     // to data. The client will initialize asynchronously while we load the rest of
     // the user interface.
     //
-    syncClient = new Twilio.Sync.Client(tokenResponse.token, { logLevel: 'info' });
+    syncClient = new Twilio.Sync.Client(tokenResponse.token, { logLevel: 'debug' });
+    identity = tokenResponse.identity;
     syncClient.on('connectionStateChanged', function(state) {
       if (state != 'connected') {
         $message.html('Sync is not live (websocket connection <span style="color: red">' + state + '</span>)…');
@@ -31,6 +33,18 @@ $(function () {
         $message.html('Sync is live!');
       }
     });
+
+    syncClient.on('tokenAboutToExpire', function() {
+      console.log('Token about to expire');
+      $.getJSON('/token/'+identity, function(tokenResponse) {
+        console.log('updating token ' + tokenResponse.token);
+        syncClient.updateToken(tokenResponse.token);
+      })
+
+      // Obtain a JWT access token: https://www.twilio.com/docs/sync/identity-and-access-tokens
+      //var token = '<your-access-token-here>';
+      //syncClient.updateToken(token);
+    }); 
 
     // Let's pop a message on the screen to show that Sync is working
     $message.html('Loading board data…');
